@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>רישום ספק</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <h2>טופס רישום ספק</h2>
+  <div class="container">
+  <form id="registerForm">
+    <input type="text" name="companyName" placeholder="שם חברה" required><br>
+    <input type="text" name="phone" placeholder="טלפון" required><br>
+    <input type="text" name="representativeName" placeholder="שם נציג" required><br>
+    <input type="password" name="password" placeholder="סיסמה" required><br>
+    <input type="password" name="confirmPassword" placeholder="אימות סיסמה" required><br>
+
+    <h4>הוספת מוצרים</h4>
+    <div id="productsList">
+      <div class="product">
+        <input type="text" name="productName" placeholder="שם מוצר" required>
+        <input type="number" name="price" placeholder="מחיר" required>
+        <input type="number" name="minQuantity" placeholder="כמות מינימלית" required>
+      </div>
+    </div>
+    <button type="button" onclick="addProduct()">הוסף מוצר</button><br><br>
+    <button type="submit">רשום ספק</button>
+  </form>
+  </div>
+
+  <script>
+    function addProduct() {
+      const container = document.createElement('div');
+      container.classList.add('product');
+      container.innerHTML = `
+        <input type="text" name="productName" placeholder="שם מוצר" required>
+        <input type="number" name="price" placeholder="מחיר" required>
+        <input type="number" name="minQuantity" placeholder="כמות מינימלית" required>
+      `;
+      document.getElementById('productsList').appendChild(container);
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const productsElements = form.querySelectorAll('.product');
+      const products = [];
+      const password = form.password.value;
+      const confirmPassword = form.confirmPassword.value;
+
+      if (password !== confirmPassword) {
+        alert("הסיסמאות לא תואמות");
+        return;
+      }
+
+      productsElements.forEach(p => {
+        products.push({
+          name: p.querySelector('[name="productName"]').value,
+          price: parseFloat(p.querySelector('[name="price"]').value),
+          minQuantity: parseInt(p.querySelector('[name="minQuantity"]').value)
+        });
+      });
+
+      const supplier = {
+        companyName: form.companyName.value,
+        phone: form.phone.value,
+        representativeName: form.representativeName.value,
+        password: form.password.value,
+        products
+      };
+
+      const res = await fetch('http://localhost:3000/api/supplier/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplier)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        location.href='login.html'
+      } else {
+        alert('שגיאה: ' + result.message);
+      }
+    });
+  </script>
+</body>
+</html>

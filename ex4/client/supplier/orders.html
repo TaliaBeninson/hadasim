@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+    <meta charset="UTF-8">
+    <title>הזמנות ספק</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>הזמנות ממתינות</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>תאריך</th>
+                    <th>מוצרים בהזמנה</th>
+                    <th>סטטוס</th>
+                    <th>פעולה</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const supplierId = localStorage.getItem('supplierId');
+        if (!supplierId) {
+            alert("אנא התחבר קודם");
+            location.href = 'login.html';
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('he-IL');
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch(`http://localhost:3000/api/orders/supplier/${supplierId}`);
+                const orders = await res.json();
+                const table = document.getElementById('ordersTable');
+                table.innerHTML = '';
+
+                orders.forEach(order => {
+                    const row = document.createElement('tr');
+
+                    const itemsHtml = order.items.map(item =>
+                        `<div>${item.productName} × ${item.quantity}</div>`
+                    ).join('');
+
+                    row.innerHTML = `
+                        <td>${formatDate(order.createdAt)}</td>
+                        <td>${itemsHtml}</td>
+                        <td>${order.status}</td>
+                        <td>
+                        ${order.status === 'ממתין לאישור' ?
+                                                `<button onclick="approveOrder(${order.id})">אשר</button>` : ''}
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Failed to load orders:', error);
+                alert('שגיאה בטעינת ההזמנות');
+            }
+        }
+
+        async function approveOrder(orderId) {
+            try {
+                await fetch(`http://localhost:3000/api/orders/${orderId}/approve`, {
+                    method: 'PUT'
+                });
+                loadOrders();
+            } catch (error) {
+                console.error('Failed to approve order:', error);
+                alert('שגיאה באישור ההזמנה');
+            }
+        }
+
+        loadOrders();
+    </script>
+</body>
+
+</html>

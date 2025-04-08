@@ -1,0 +1,80 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  direction: rtl;
+  padding: 30px;
+  text-align: center;
+}
+
+.container {
+  background: #fff;
+  margin: auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+input,
+button,
+select {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #2196F3;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #1976D2;
+}
+
+h1,
+h2,
+h4 {
+  margin-bottom: 20px;
+}
+
+.product {
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  direction: rtl;
+  font-family: 'Arial', sans-serif;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+th,
+td {
+  padding: 14px 18px;
+  text-align: right;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background-color: #f7f7f7;
+  font-weight: bold;
+  color: #333;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}

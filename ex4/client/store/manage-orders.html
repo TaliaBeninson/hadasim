@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ניהול הזמנות</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h2>רשימת כל ההזמנות</h2>
+    <button onclick="toggleFilter()" id="filterBtn">הצג את כל ההזמנות</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>שם ספק</th>
+          <th>מוצרים בהזמנה</th>
+          <th>סטטוס</th>
+          <th>פעולה</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let showAll = false;
+
+    function toggleFilter() {
+      showAll = !showAll;
+      const btn = document.getElementById('filterBtn');
+      btn.textContent = showAll ? 'הצג רק הזמנות קיימות' : 'הצג את כל ההזמנות';
+      loadOrders();
+    }
+    async function loadOrders() {
+      const res = await fetch('http://localhost:3000/api/orders');
+      const orders = await res.json();
+      const table = document.getElementById('ordersTable');
+      table.innerHTML = '';
+
+      const filteredOrders = showAll
+        ? orders
+        : orders.filter(order => order.status !== 'הושלמה');
+
+      filteredOrders.forEach(order => {
+        const row = document.createElement('tr');
+
+        const itemsHtml = order.items.map(item =>
+          `<div>${item.productName} × ${item.quantity}</div>`
+        ).join('');
+
+        row.innerHTML = `
+          <td>${order.companyName}</td>
+          <td>${itemsHtml}</td>
+          <td>${order.status}</td>
+          <td>
+            ${order.status === 'בתהליך' ?
+                  `<button onclick="completeOrder(${order.id})">סמן כהושלמה</button>` : ''}
+          </td>
+  `;
+        table.appendChild(row);
+      });
+
+    }
+
+    async function completeOrder(orderId) {
+      await fetch(`http://localhost:3000/api/orders/${orderId}/complete`, {
+        method: 'PUT'
+      });
+      loadOrders();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('filterBtn').textContent = 'הצג את כל ההזמנות';
+      loadOrders();
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ניהול מלאי</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>מלאי הסחורות במכולת</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>שם מוצר</th>
+                    <th>כמות</th>
+                    <th>כמות מינימלית</th>
+                    <th>הערות</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTable"></tbody>
+        </table>
+
+        <h3>הוספה / עדכון סחורה</h3>
+        <form id="inventoryForm">
+            <input type="text" name="productName" placeholder="שם מוצר" required>
+            <input type="number" name="quantity" placeholder="כמות" required>
+            <input type="number" name="minQuantity" placeholder="כמות מינימלית" required>
+            <button type="submit">שמור</button>
+        </form>
+    </div>
+
+    <script>
+        async function loadInventory() {
+            const res = await fetch('http://localhost:3000/api/inventory');
+            const items = await res.json();
+
+            const allProductsRes = await fetch('http://localhost:3000/api/supplier/all-products');
+            const allSupplierProducts = await allProductsRes.json();
+
+            const table = document.getElementById('inventoryTable');
+            table.innerHTML = '';
+
+            items.forEach(item => {
+                const hasSupplier = allSupplierProducts.includes(item.productName);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.productName}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.minQuantity}</td>
+                    <td>${!hasSupplier ? '<span style="color:red;">לא קיים ספק</span>' : ''}</td>
+                    `;
+                table.appendChild(row);
+            });
+        }
+
+        document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const body = {
+                productName: form.productName.value,
+                quantity: parseInt(form.quantity.value),
+                minQuantity: parseInt(form.minQuantity.value)
+            };
+
+            await fetch('http://localhost:3000/api/inventory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            form.reset();
+            loadInventory();
+        });
+
+        loadInventory();
+    </script>
+</body>
+
+</html>

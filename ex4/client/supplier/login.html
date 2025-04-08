@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>כניסת ספק</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>כניסת ספק</h2>
+    <form id="loginForm">
+      <input type="text" name="phone" placeholder="טלפון" required><br>
+      <input type="password" name="password" placeholder="סיסמה" required><br>
+      <button type="submit">התחבר</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+
+      const body = {
+        phone: form.phone.value,
+        password: form.password.value
+      };
+
+      const res = await fetch('http://localhost:3000/api/supplier/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        localStorage.setItem('supplierId', result.supplierId);
+        location.href = 'orders.html'; 
+      } else {
+        alert(result.message || 'שגיאה בהתחברות');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+  <meta charset="UTF-8">
+  <title>הזמנת סחורה - בעל מכולת</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h2>ביצוע הזמנה מספק</h2>
+    <form id="orderForm">
+      <select name="supplierId" required id="supplierSelect">
+        <option value="">בחר ספק</option>
+      </select><br>
+      <div id="productsContainer"></div>
+      <button type="button" onclick="addProductRow()">הוסף מוצר נוסף</button><br><br>
+      <button type="submit">בצע הזמנה</button>
+    </form>
+  </div>
+
+  <script>
+    let allProducts = [];
+    async function loadSuppliers() {
+      const res = await fetch('http://localhost:3000/api/supplier');
+      const suppliers = await res.json();
+
+      const select = document.getElementById('supplierSelect');
+      suppliers.forEach(supplier => {
+        const opt = document.createElement('option');
+        opt.value = supplier.id;
+        opt.textContent = supplier.companyName;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById('supplierSelect').addEventListener('change', async (e) => {
+      const supplierId = e.target.value;
+      if (!supplierId) return;
+      const res = await fetch(`http://localhost:3000/api/supplier/${supplierId}/products`);
+      allProducts = await res.json();
+      document.getElementById('productsContainer').innerHTML = '';
+      addProductRow();
+    });
+
+    function addProductRow() {
+      const container = document.getElementById('productsContainer');
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('productRow');
+
+      const select = document.createElement('select');
+      select.name = 'productName';
+      select.required = true;
+      allProducts.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.name;
+        option.textContent = `${p.name} (₪${p.price})`;
+        select.appendChild(option);
+      });
+
+      const quantity = document.createElement('input');
+      quantity.type = 'number';
+      quantity.name = 'quantity';
+      quantity.placeholder = 'כמות להזמנה';
+      quantity.required = true;
+
+      wrapper.appendChild(select);
+      wrapper.appendChild(quantity);
+      container.appendChild(wrapper);
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const supplierId = form.supplierId.value;
+      const rows = document.querySelectorAll('.productRow');
+
+      const items = [];
+
+      for (const row of rows) {
+        const productName = row.querySelector('select').value;
+        const quantity = parseInt(row.querySelector('input').value);
+
+        const product = allProducts.find(p => p.name === productName);
+        if (!product) continue;
+
+        if (quantity < product.minQuantity) {
+          alert(`כמות מינימלית להזמנה עבור "${product.name}" היא ${product.minQuantity}`);
+          return;
+        }
+
+        items.push({ productName, quantity });
+      }
+
+      await fetch('http://localhost:3000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supplierId, items })
+      });
+
+      alert('ההזמנה בוצעה בהצלחה');
+      form.reset();
+      document.getElementById('productsContainer').innerHTML = '';
+    });
+
+
+    loadSuppliers();
+  </script>
+</body>
+
+</html>
